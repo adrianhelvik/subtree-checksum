@@ -1,0 +1,9 @@
+{
+  "name": "subtree-checksum",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "bin": {
+      "subtree-checksum": "./cli.js"
+  }
+}
