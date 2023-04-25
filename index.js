@@ -10,45 +10,48 @@ const crypto = require("crypto");
  * @param {string | Buffer} value
  * @returns {string}
  */
-const hash = (value) => {
+const hashValue = (value) => {
     return crypto.createHash("sha256").update(value).digest("hex");
-}
-
-/**
- * @param {string} file
- * @returns {string}
- */
-function hashFile(file) {
-    return hash(fs.readFileSync(file));
-}
+};
 
 /**
  * @param {string} dir
+ * @param {string[]} skip
  * @returns {string}
  */
-function hashDir(dir) {
-    return hash(
+function hashDir(dir, skip) {
+    if (skip && skip.includes(dir)) return "";
+    return hashValue(
         fs
             .readdirSync(dir)
             .sort()
             .map((file) => path.join(dir, file))
-            .reduce((acc, file) => acc + hashTree(file), "")
+            .reduce((acc, file) => acc + hashFile(file, skip), "")
     );
 }
 
 /**
- * @param {string} dir
+ * @param {string} file
+ * @param {string[]} skip
  * @returns {string}
  */
-function hashTree(dir) {
-    const stat = fs.statSync(dir);
-    if (stat.isFile()) {
-        return hashFile(dir);
-    } else if (stat.isDirectory()) {
-        return hashDir(dir);
+function hashFile(file, skip) {
+    if (skip && skip.includes(file)) return "";
+    const stat = fs.statSync(file);
+    if (stat.isDirectory()) {
+        return hashDir(file, skip);
     } else {
-        throw new Error(`Unknown file type: ${dir}`);
+        return hashValue(fs.readFileSync(file));
     }
 }
 
-module.exports = hashTree;
+/**
+ * @param {string[]} files
+ * @param {string[]} skip
+ * @returns {string}
+ */
+function hashMultiple(files, skip) {
+    return hashValue(files.map((file) => hashFile(file, skip)).join(""));
+}
+
+module.exports = hashMultiple;
