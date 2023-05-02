@@ -41,7 +41,7 @@ function hashFile(file, skip) {
     if (stat.isDirectory()) {
         return hashDir(file, skip);
     } else {
-        return hashValue(fs.readFileSync(file));
+        return hashValue(":" + file + ":" + fs.readFileSync(file, "base64"));
     }
 }
 
