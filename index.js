@@ -7,11 +7,15 @@ const path = require("path");
 const crypto = require("crypto");
 
 /**
- * @param {string | Buffer} value
+ * @param {string} fileName
+ * @param {Buffer | string} value
  * @returns {string}
  */
-const hashValue = (value) => {
-    return crypto.createHash("sha256").update(value).digest("hex");
+const hashValue = (fileName, value) => {
+    return crypto.createHash("sha256")
+        .update(fileName)
+        .update(value)
+        .digest("hex");
 };
 
 /**
@@ -22,6 +26,7 @@ const hashValue = (value) => {
 function hashDir(dir, skip) {
     if (skip && skip.includes(dir)) return "";
     return hashValue(
+        dir,
         fs
             .readdirSync(dir)
             .sort()
@@ -41,7 +46,7 @@ function hashFile(file, skip) {
     if (stat.isDirectory()) {
         return hashDir(file, skip);
     } else {
-        return hashValue(":" + file + ":" + fs.readFileSync(file, "base64"));
+        return hashValue(file, fs.readFileSync(file));
     }
 }
 
@@ -51,7 +56,7 @@ function hashFile(file, skip) {
  * @returns {string}
  */
 function hashMultiple(files, skip) {
-    return hashValue(files.map((file) => hashFile(file, skip)).join(""));
+    return hashValue("root", files.map((file) => hashFile(file, skip)).join(""));
 }
 
 module.exports = hashMultiple;
